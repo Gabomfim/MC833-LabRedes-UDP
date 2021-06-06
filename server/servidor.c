@@ -24,16 +24,15 @@
 void emergencyExit();
 
 int main(int argc, char *argv[ ]){
-
-    if (argc != 2){
+  
+    if(argc != 1 && argc != 3){
         printf("Erro de execução, olhe o README para mais informações!!\n");
         exit(1);
     }
+
     server_path = malloc((sizeof(argv[1])*sizeof(char))+1);
     strcpy(server_path, argv[1]);
     
-    typedef struct sockaddr_in sockaddr_in;
-    typedef struct sockaddr sockaddr;
     ssize_t n;
 
     int serverSocket = 0, clientSocket = -1;
@@ -47,12 +46,27 @@ int main(int argc, char *argv[ ]){
     sockaddr_in server_address;
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(50000);
-    server_address.sin_addr.s_addr = INADDR_ANY;
+    if(argc == 1){
+        server_address.sin_addr.s_addr = INADDR_ANY;
+    }else if (argc == 3){
+        server_address.sin_addr.s_addr = inet_addr(argv[1]);
+    }
     unsigned int len;
-    len = sizeof(server_address);
+    len = sizeof(server_address); //verificar coisasndendatagrama
 
-    //define client adrr
+    // define destination address
+    struct sockaddr_in dest;
+    dest.sin_family = AF_INET;
+    dest.sin_port = htons(50000);
+    if(argc == 1){
+        dest.sin_addr.s_addr = INADDR_ANY;
+    }else if (argc == 3){ 
+        dest.sin_addr.s_addr = inet_addr(argv[2]);
+    }
+    
+    //define client addr
     sockaddr client_address;
+    unsigned int len_client;
 
     //bind the socket to IP and port
     bind(serverSocket, (sockaddr *) &server_address, len);
@@ -60,31 +74,33 @@ int main(int argc, char *argv[ ]){
     while(1){
         listen(serverSocket, 5); //can have 5 connection waiting at max
 
+        
+        len_client = sizeof(client_address);
         clientSocket = accept(serverSocket, (sockaddr *) &client_address, &len); //-> substituir valores de null por outras estruturas se quiser pegar o endereço do cliente
         
         if(clientSocket != -1){
-            if(fork() == 0){ //CHILD
-                printf("client socket: %d\n", clientSocket);
-                if(clientSocket == -1){
-                    printf("The client has disconnected\n");
-                }
-                close(serverSocket);
-                
-                again:
-                    while ( (n = recv(clientSocket, request, MAX_SIZE, 0)) > 0){
-                        printf("The client has requested: %s", request);
-                        printf("buffer size: %ld\n", n);
-
-                        parse(request, clientSocket);
-
-                        if (n < 0 && errno == 4)
-                            goto again;
-                        else if (n < 0)
-                            printf("str_echo: recv error");
-                    }
-            }else{ //PARENT
-                close(clientSocket);	
+            
+            printf("client socket: %d\n", clientSocket);
+            if(clientSocket == -1){
+                printf("The client has disconnected\n");
             }
+            close(serverSocket);
+            
+            again:
+            len_client = sizeof(client_address);
+            while ( (n = recvfrom(clientSocket, request, MAX_SIZE, 0, &client_address, &len)) > 0){
+                printf("The client has requested: %s", request);
+                printf("buffer size: %ld\n", n);
+
+                parse(request, clientSocket, dest);
+
+                if (n < 0 && errno == 4)
+                    goto again;
+                else if (n < 0)
+                    printf("str_echo: recv error");
+            }
+
+            close(clientSocket);	
         } 
     }
   

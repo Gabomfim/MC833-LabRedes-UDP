@@ -17,3 +17,6 @@ typedef struct Profile {
     const char *const *experience; //vetor de experiencias
     const char *const *skills; //vetor de skills
 } Profile; 
+
+typedef struct sockaddr_in sockaddr_in;
+typedef struct sockaddr sockaddr;
