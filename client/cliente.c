@@ -20,7 +20,7 @@ void emergencyExit();
 
 int main(int argc, char *argv[ ]){
     
-    if (argc != 2){
+    if (argc != 1 && argc != 2){
         printf("Erro de execução, olhe o README para mais informações!!\n");
         exit(1);
     }
@@ -42,7 +42,7 @@ int main(int argc, char *argv[ ]){
     server_address.sin_port = htons(50000);
     if(argc == 1){
         server_address.sin_addr.s_addr = INADDR_ANY;
-    }else if (argc == 3){
+    }else if (argc == 2){
         server_address.sin_addr.s_addr = inet_addr(argv[1]);
     }
     unsigned int len;

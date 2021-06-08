@@ -25,7 +25,8 @@ void emergencyExit();
 
 int main(int argc, char *argv[ ]){
   
-    if(argc != 1 && argc != 3){
+    if(argc != 2){
+        printf("argc: %d\n", argc);
         printf("Erro de execução, olhe o README para mais informações!!\n");
         exit(1);
     }
@@ -46,7 +47,7 @@ int main(int argc, char *argv[ ]){
     sockaddr_in server_address;
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(50000);
-    if(argc == 1){
+    if(argc == 2){
         server_address.sin_addr.s_addr = INADDR_ANY;
     }else if (argc == 3){
         server_address.sin_addr.s_addr = inet_addr(argv[1]);
@@ -58,7 +59,7 @@ int main(int argc, char *argv[ ]){
     struct sockaddr_in dest;
     dest.sin_family = AF_INET;
     dest.sin_port = htons(50000);
-    if(argc == 1){
+    if(argc == 2){
         dest.sin_addr.s_addr = INADDR_ANY;
     }else if (argc == 3){ 
         dest.sin_addr.s_addr = inet_addr(argv[2]);
