@@ -36,21 +36,33 @@ int main(int argc, char *argv[ ]){
     //creating a TCP socket
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 
+    //define server address
+    sockaddr_in server_address;
+    server_address.sin_family = AF_INET;
+    server_address.sin_port = htons(50000);
+    if(argc == 1){
+        server_address.sin_addr.s_addr = INADDR_ANY;
+    }else if (argc == 3){
+        server_address.sin_addr.s_addr = inet_addr(argv[1]);
+    }
+    unsigned int len;
+    len = sizeof(server_address); //verificar se datagramas tem tamanho fixo
+
     //socket address
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(50000);
     server_address.sin_addr.s_addr = inet_addr(argv[1]); //o IP local do servidor vai aqui
 
     int status;
-    status = connect(serverSocket, (sockaddr *) &server_address, sizeof(server_address));
+    status = connect(serverSocket, (sockaddr *) &server_address, len);
     if(status == -1){
         perror("Connection failed");
         close(serverSocket);
         return 1;
     }
 
-    status = send(serverSocket, request, sizeof(request), 0);
-    status = recv(serverSocket, response, sizeof(response), 0);
+    status = sendto(serverSocket, request, sizeof(request), 0, (struct sockaddr*)&server_address, len);
+    status = recvfrom(serverSocket, response, sizeof(response), 0, (struct sockaddr*)&server_address, &len);
     printf("\nServidor Conectado!\n");
 
     printf("                                                                   \n"            

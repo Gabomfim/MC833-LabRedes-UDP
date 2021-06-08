@@ -52,7 +52,7 @@ int main(int argc, char *argv[ ]){
         server_address.sin_addr.s_addr = inet_addr(argv[1]);
     }
     unsigned int len;
-    len = sizeof(server_address); //verificar coisasndendatagrama
+    len = sizeof(server_address); //verificar se datagramas tem tamanho fixo
 
     // define destination address
     struct sockaddr_in dest;
@@ -76,7 +76,7 @@ int main(int argc, char *argv[ ]){
 
         
         len_client = sizeof(client_address);
-        clientSocket = accept(serverSocket, (sockaddr *) &client_address, &len); //-> substituir valores de null por outras estruturas se quiser pegar o endereço do cliente
+        clientSocket = accept(serverSocket, (sockaddr *) &client_address, &len_client); //-> substituir valores de null por outras estruturas se quiser pegar o endereço do cliente
         
         if(clientSocket != -1){
             
@@ -88,7 +88,7 @@ int main(int argc, char *argv[ ]){
             
             again:
             len_client = sizeof(client_address);
-            while ( (n = recvfrom(clientSocket, request, MAX_SIZE, 0, &client_address, &len)) > 0){
+            while ( (n = recvfrom(clientSocket, request, MAX_SIZE, 0, &client_address, &len_client)) > 0){
                 printf("The client has requested: %s", request);
                 printf("buffer size: %ld\n", n);
 

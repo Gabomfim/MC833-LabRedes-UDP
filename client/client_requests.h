@@ -11,13 +11,10 @@
 
 #include "JSONfier_client.h"
 
-
-typedef struct sockaddr_in sockaddr_in;
-typedef struct sockaddr sockaddr;
-
 //Global variables
 int serverSocket;
 struct sockaddr_in server_address;
+unsigned int server_len = sizeof(server_address);
 char request[MAX_LINE];
 
 
@@ -51,7 +48,7 @@ bool sendToServer(char* json){
         n++;
     }    
     n = formatJson(json, n);
-    status = send(serverSocket, json, n, 0);
+    status = sendto(serverSocket, json, n, 0, (struct sockaddr*)&server_address, server_len);
 
 
     if(status < 0){
@@ -59,7 +56,7 @@ bool sendToServer(char* json){
         return false;
     }
     //receive message from server;
-    status = recv(serverSocket, response, 5000, 0);
+    status = recvfrom(serverSocket, response, 5000, 0, (struct sockaddr*)&server_address, &server_len);
     if(status <= 0){
         printf("Recv failed, error code %d\n", status);
         return false;
