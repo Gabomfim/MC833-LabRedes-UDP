@@ -31,19 +31,19 @@ typedef struct JSONquery {
 
 char* server_path;
 
-bool createProfile (Profile profile, int clientSocket, sockaddr_in dest);
+bool createProfile (Profile profile, int serverSocket, sockaddr_in dest);
 bool addExperience(char email[30], char professionalExperience[100], sockaddr_in dest);
 bool addSkill(char email[30], char skill[100], sockaddr_in dest);
-bool listProfilesBasedOnSkill(char skill[100], int clientSocket, sockaddr_in dest);
-bool listProfilesBasedOnEducation(char education[100], int clientSocket, sockaddr_in dest);
-bool listProfilesBasedOnGraduationYear(char graduationYear[4], int clientSocket, sockaddr_in dest);
-bool listAllProfiles(int clientSocket, sockaddr_in dest);
-bool readProfile(char *email, int clientSocket, sockaddr_in dest);
-bool removeProfile(char *email, int clientSocket, sockaddr_in dest);
+bool listProfilesBasedOnSkill(char skill[100], int serverSocket, sockaddr_in dest);
+bool listProfilesBasedOnEducation(char education[100], int serverSocket, sockaddr_in dest);
+bool listProfilesBasedOnGraduationYear(char graduationYear[4], int serverSocket, sockaddr_in dest);
+bool listAllProfiles(int serverSocket, sockaddr_in dest);
+bool readProfile(char *email, int serverSocket, sockaddr_in dest);
+bool removeProfile(char *email, int serverSocket, sockaddr_in dest);
 int callback(void *, int, char **, char **);
 char* formatResponse(bool status, char** data, int lineCount, int collumnCount);
 cJSON* formatProfiles(char** data, int lineCout, int collumnCount);
-bool sendResponse(char* response, int clientSocket, sockaddr_in dest);
+bool sendResponse(char* response, int serverSocket, sockaddr_in dest);
 int formatJson(char* json, int len);
 
 /*
@@ -61,13 +61,13 @@ int formatJson(char* json, int len){
     return n;
 }
 
-bool sendResponse(char* response, int clientSocket, sockaddr_in dest){
+bool sendResponse(char* response, int serverSocket, sockaddr_in dest){
     int n = 0, status;
     while(response[n]!='\0'){
         n++;
     }    
     n = formatJson(response, n);
-    status = sendto(clientSocket, response, n, 0, (struct sockaddr*)&dest, sizeof(dest));
+    status = sendto(serverSocket, response, n, 0, (struct sockaddr*)&dest, sizeof(dest));
 
 
     if(status < 0){
@@ -77,7 +77,7 @@ bool sendResponse(char* response, int clientSocket, sockaddr_in dest){
     return true;
 }
 
-bool createProfile(Profile profile, int clientSocket, sockaddr_in dest){
+bool createProfile(Profile profile, int serverSocket, sockaddr_in dest){
    
     sqlite3 *db;
     char *err_msg = 0;
@@ -122,7 +122,7 @@ bool createProfile(Profile profile, int clientSocket, sockaddr_in dest){
 
     sqlite3_close(db);
 
-    return sendResponse(response, clientSocket, dest);
+    return sendResponse(response, serverSocket, dest);
 }
 
 /*
@@ -247,7 +247,7 @@ bool addSkill(char email[30], char skill[100], sockaddr_in dest){
 ---------------------------------------------
 */
 
-bool listProfilesBasedOnEducation(char education[100], int clientSocket, sockaddr_in dest){
+bool listProfilesBasedOnEducation(char education[100], int serverSocket, sockaddr_in dest){
     bool status = true;
     sqlite3 *db;
     char **sql_return;
@@ -321,7 +321,7 @@ bool listProfilesBasedOnEducation(char education[100], int clientSocket, sockadd
         }
     }
     free(sql_return);
-    status = sendResponse(stringRetorno, clientSocket, dest);
+    status = sendResponse(stringRetorno, serverSocket, dest);
     sqlite3_finalize(stmt);
     sqlite3_close(db);
 
@@ -335,7 +335,7 @@ bool listProfilesBasedOnEducation(char education[100], int clientSocket, sockadd
 -----------------------------------------
 */
 
-bool listProfilesBasedOnSkill(char skill[300], int clientSocket, sockaddr_in dest){
+bool listProfilesBasedOnSkill(char skill[300], int serverSocket, sockaddr_in dest){
     bool status = true;
     sqlite3 *db;
     char **sql_return;
@@ -409,7 +409,7 @@ bool listProfilesBasedOnSkill(char skill[300], int clientSocket, sockaddr_in des
         }
     }
     free(sql_return);
-    status = sendResponse(stringRetorno, clientSocket, dest);
+    status = sendResponse(stringRetorno, serverSocket, dest);
     sqlite3_finalize(stmt);
     sqlite3_close(db);
 
@@ -423,7 +423,7 @@ bool listProfilesBasedOnSkill(char skill[300], int clientSocket, sockaddr_in des
 ---------------------------------------------------
 */
 
-bool listProfilesBasedOnGraduationYear(char graduationYear[4], int clientSocket, sockaddr_in dest){
+bool listProfilesBasedOnGraduationYear(char graduationYear[4], int serverSocket, sockaddr_in dest){
     bool status = true;
     sqlite3 *db;
     char **sql_return;
@@ -497,7 +497,7 @@ bool listProfilesBasedOnGraduationYear(char graduationYear[4], int clientSocket,
         }
     }
     free(sql_return);
-    status = sendResponse(stringRetorno, clientSocket, dest);
+    status = sendResponse(stringRetorno, serverSocket, dest);
     sqlite3_finalize(stmt);
     sqlite3_close(db);
 
@@ -511,8 +511,7 @@ bool listProfilesBasedOnGraduationYear(char graduationYear[4], int clientSocket,
 ---------------------------------------
 */
 
-bool listAllProfiles(int clientSocket, sockaddr_in dest){
-
+bool listAllProfiles(int serverSocket, sockaddr_in dest){
     bool status = true;
     sqlite3 *db;
     char **sql_return;
@@ -583,7 +582,7 @@ bool listAllProfiles(int clientSocket, sockaddr_in dest){
     }
     free(sql_return);
 
-    status = sendResponse(stringRetorno, clientSocket, dest);
+    status = sendResponse(stringRetorno, serverSocket, dest);
     sqlite3_finalize(stmt);
     sqlite3_close(db);
 
@@ -597,7 +596,7 @@ bool listAllProfiles(int clientSocket, sockaddr_in dest){
 ----------------------------------
 */
 
-bool readProfile(char *email, int clientSocket, sockaddr_in dest){
+bool readProfile(char *email, int serverSocket, sockaddr_in dest){
     bool status = true;
     sqlite3 *db;
     char **sql_return;
@@ -671,7 +670,7 @@ bool readProfile(char *email, int clientSocket, sockaddr_in dest){
         }
     }
     free(sql_return);
-    status = sendResponse(stringRetorno, clientSocket, dest);
+    status = sendResponse(stringRetorno, serverSocket, dest);
     sqlite3_finalize(stmt);
     sqlite3_close(db);
 
@@ -687,7 +686,7 @@ bool readProfile(char *email, int clientSocket, sockaddr_in dest){
 -------------------------------------
 */
 
-bool removeProfile(char *email, int clientSocket, sockaddr_in dest){
+bool removeProfile(char *email, int serverSocket, sockaddr_in dest){
     
     sqlite3 *db;
     char *err_msg = 0;
@@ -727,7 +726,7 @@ bool removeProfile(char *email, int clientSocket, sockaddr_in dest){
 
     sqlite3_close(db);
 
-    return sendResponse(response, clientSocket, dest);
+    return sendResponse(response, serverSocket, dest);
 
 }
 

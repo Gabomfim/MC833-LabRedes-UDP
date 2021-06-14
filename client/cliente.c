@@ -28,16 +28,13 @@ int main(int argc, char *argv[ ]){
     //O que acontece quando eu aperto ^C
     signal(SIGINT, emergencyExit);
 
-    char request[] = "Connect\n\0";
-    char response[50];
-
-    printf("Conectando ao servidor.....\n");
-    printf("Aguarde.....\n");
-    //creating a TCP socket
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    // Creating socket
+    if ( (serverSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) {
+        perror("socket creation failed");
+        exit(EXIT_FAILURE);
+    }
 
     //define server address
-    sockaddr_in server_address;
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(50000);
     if(argc == 1){
@@ -45,25 +42,6 @@ int main(int argc, char *argv[ ]){
     }else if (argc == 2){
         server_address.sin_addr.s_addr = inet_addr(argv[1]);
     }
-    unsigned int len;
-    len = sizeof(server_address); //verificar se datagramas tem tamanho fixo
-
-    //socket address
-    server_address.sin_family = AF_INET;
-    server_address.sin_port = htons(50000);
-    server_address.sin_addr.s_addr = inet_addr(argv[1]); //o IP local do servidor vai aqui
-
-    int status;
-    status = connect(serverSocket, (sockaddr *) &server_address, len);
-    if(status == -1){
-        perror("Connection failed");
-        close(serverSocket);
-        return 1;
-    }
-
-    status = sendto(serverSocket, request, sizeof(request), 0, (struct sockaddr*)&server_address, len);
-    status = recvfrom(serverSocket, response, sizeof(response), 0, (struct sockaddr*)&server_address, &len);
-    printf("\nServidor Conectado!\n");
 
     printf("                                                                   \n"            
            "                                                                   \n"
@@ -140,9 +118,6 @@ int main(int argc, char *argv[ ]){
             break;
 
         case '6'://desligar aplicação
-            printf("\n\n------------------------------------------\n");
-            printf("    Fechando conexão com o servidor....\n");
-            printf("------------------------------------------\n\n");
             close(serverSocket);
             printf("-----------Tchau! Volte sempre!-----------\n\n");
             flag = false;

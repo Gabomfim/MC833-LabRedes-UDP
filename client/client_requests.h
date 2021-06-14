@@ -15,7 +15,6 @@
 int serverSocket;
 struct sockaddr_in server_address;
 unsigned int server_len = sizeof(server_address);
-char request[MAX_LINE];
 
 
 bool createProfile();
@@ -31,6 +30,7 @@ bool removeProfile();
 int formatJson(char* json, int len);
 void cleanBuffer();
 bool sendToServer(char* json);
+bool connectToServer();
 
 int formatJson(char* json, int len){
     int n = len;
@@ -44,17 +44,21 @@ int formatJson(char* json, int len){
 bool sendToServer(char* json){
     int n = 0, status;
     char* response = malloc(sizeof(char)*5000);
+            
+    // Aqui existe uma validação se o json apresenta o formato de string no final. Isso causava um bug que o servidor não identificava a mensagem recebida.
     while(json[n]!='\0'){
         n++;
     }    
     n = formatJson(json, n);
+
+    // Envio de mensagem para o servidor
     status = sendto(serverSocket, json, n, 0, (struct sockaddr*)&server_address, server_len);
-
-
     if(status < 0){
         printf("Send failed, error code %d\n", status);
         return false;
     }
+
+
     //receive message from server;
     status = recvfrom(serverSocket, response, 5000, 0, (struct sockaddr*)&server_address, &server_len);
     if(status <= 0){
@@ -65,6 +69,7 @@ bool sendToServer(char* json){
     bool retorno = parseServerMessage(response, status);
     free(response);
     //treat server response
+
     return retorno;
 }
 
